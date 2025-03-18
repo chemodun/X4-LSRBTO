@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mdscript name="LSRBetterThanOld" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
+
+  <cues>
+    <cue name="Init" version="100">
+      <conditions>
+        <event_cue_signalled cue="md.Setup.Start" />
+      </conditions>
+      <actions>
+        <set_value name="$DebugChance" exact="0" />
+        <do_if value="$upgradeTasks?" negate="true">
+          <set_value name="$upgradeTasks" exact="[]" />
+        </do_if>
+      </actions>
+      <cues>
+
+        <library name="RequestLoadoutsInfo" version="100">
+          <actions>
+            <debug_text text="'LSRBTO_RequestLoadoutsInfo [%s]: macro: %s'.[player.age, $locship.macro]"
+              chance="100" />
+            <set_value name="$getLoadoutByMacro" exact="$locship.macro" />
+            <include_actions ref="md.GetShipLoadoutsInfo.GenerateShipLoadoutRequest" />
+            <include_actions ref="md.GetShipLoadoutsInfo.GenerateShipLoadoutRequestClearance" />
+          </actions>
+        </library>
+
+        <library name="MakeBetterThanOld" version="100">
+          <actions>
+            <debug_text
+              text="'LSRBTO_MakeBetterThanOld [%s]: Build: Task: %s. Object: %s (%s). Processor: %s (%s). Other: %s (%s). Upgrade Tasks: %s'.
+            [
+              player.age,
+              @$buildtask,
+              @$buildtask.buildobject,
+              @$buildtask.buildobject.debugname,
+              @event.param,
+              @event.param.debugname,
+              @event.object,
+              @event.object.debugname,
+              @md.LSRBetterThanOld.Init.$upgradeTasks
+            ]"
+              chance="100" />
+            <set_value name="$upgradeBuild" exact="null" />
+            <do_if value="md.LSRBetterThanOld.Init.$upgradeTasks? and @md.LSRBetterThanOld.Init.$upgradeTasks.indexof.{$buildtask}">
+              <debug_text text="'LSRBTO_UpgradeShipToDefault [%s]: Upgrade task is found: %s'.
+              [player.age, $buildtask]"
+                chance="100" />
+              <remove_from_list name="md.LSRBetterThanOld.Init.$upgradeTasks" exact="$buildtask" />
+            </do_if>
+            <do_else>
+              <set_value name="$getLoadoutByMacro" exact="$buildtask.buildobject.macro" />
+              <set_value name="$getLoadoutByName" exact="'ReplacementShip'" />
+              <include_actions ref="md.GetShipLoadoutsInfo.GetShipLoadout" />
+              <do_if value="@$shipLoadoutByMacroAndName and @event.object.controlentity.{controlpost.shiptrader}">
+                <set_value name="$missingEquipment"
+                  exact="@event.object.missingloadoutequipment.{$shipLoadoutByMacroAndName}.{$buildtask.buildobject.owner}.list" />
+                <debug_text
+                  text="'LSRBTO_MakeBetterThanOld [%s]: Going to upgrade %s. Missing equipment: Count: %s. Data: %s'.
+                  [player.age, $buildtask.buildobject.debugname, $missingEquipment.count, $missingEquipment]"
+                  chance="100" />
+                <do_if value="@$missingEquipment.count == 0">
+                  <apply_loadout loadout="$shipLoadoutByMacroAndName" object="$buildtask.buildobject" />
+                </do_if>
+                <do_else>
+                  <debug_text
+                    text="'LSRBTO_MakeBetterThanOld [%s]: Can not apply loadout %s on %s. Due to Missing equipment count: %s'.
+                  [player.age, $shipLoadoutIdByMacroAndName, $buildtask.buildobject.debugname, $missingEquipment.count]"
+                    chance="100" />
+                </do_else>
+                <remove_value name="$missingEquipment" />
+              </do_if>
+              <include_actions ref="md.GetShipLoadoutsInfo.GetShipLoadoutClearance" />
+            </do_else>
+          </actions>
+        </library>
+      </cues>
+    </cue>
+  </cues>
+
+</mdscript>

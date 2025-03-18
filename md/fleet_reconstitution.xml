@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<diff>
+  <add sel="/mdscript/cues/cue[@name='Init']/cues/cue[@name='ProcessRequest']/actions/do_if[@value='$shipstobereplaced.count']/do_for_each[@name='$locship']/do_else/do_for_each[@name='$locshipyard']/do_if[@value='not $shipyardfails']/add_build_to_rebuild_fleet_ship[@result='$buildtask']" pos="after">
+    <include_actions ref="md.LSRBetterThanOld.RequestLoadoutsInfo" />
+  </add>
+  <add sel="/mdscript/cues/cue[@name='Init']/cues/cue[@name='ProcessRequest']/cues/cue[@name='CheckShipyards']/cues/cue[@name='BuildFinished']/actions/set_value[@name='$buildtask']" pos="after">
+    <include_actions ref="md.LSRBetterThanOld.MakeBetterThanOld" />
+  </add>
+</diff>

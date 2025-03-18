@@ -1,0 +1,4 @@
+*.xsd
+*.modified
+*.original
+dist
