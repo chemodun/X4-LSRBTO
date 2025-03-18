@@ -34,4 +34,4 @@ And mod will try to provide the better replacement ship for you.
 
 ## Links
 
-A short explanation video on YouTube - [X4 Foundations: Lost Ship Replacement - Better than Old](https://www.youtube.com/watch?v=DFVexbenitI)
+A short explanation video on YouTube - [X4 Foundations: Lost Ship Replacement - Better than Old](https://youtube.com/watch?v=DFVexbenitI)

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <content
-  id=""
+  id="ws_3447300452"
   name="Lost Ships Replacement: Better than Old"
-  description="Lost Ships Replacement: Better than Old"
+  description="Give a possibility to have a predefined ship loadout for replacement ships."
   author="Chem O`Dun"
   version="100"
-  date="2025-03-17"
+  date="2025-03-18"
   save="false"
-  lastupdate="">
-  <dependency version="750"/>
-  <dependency id="ws_3439691722" optional="true" name="Lost Ship Replacement Filters"/>
+  lastupdate="1742326116">
+  <dependency version="750"></dependency>
+  <dependency id="ws_3439691722" optional="true" name="Lost Ships Replacement Filters"></dependency>
 </content>
