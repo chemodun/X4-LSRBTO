@@ -2,12 +2,13 @@
 <content
   id="ws_3447300452"
   name="Lost Ships Replacement: Better than Old"
-  description="Give a possibility to have a predefined ship loadout for replacement ships."
   author="Chem O`Dun"
   version="100"
   date="2025-03-18"
   save="false"
-  lastupdate="1742326116">
+  lastupdate="1742326717"
+  description="[h1]Lost Ships Replacement - Better than Old[/h1]&#13;&#10;&#13;&#10;In X4: Foundations, the [b]Lost Ships Replacement[/b] feature was introduced in version [b]7.50[/b].&#13;&#10;This feature allows the fleet to request a replacement ship if a ship is lost during the execution of an order.&#13;&#10;The replacement ship will have the same outfit/loadout as the lost ship and will be requested automatically.&#13;&#10;&#13;&#10;But what if you want to have a better replacement ship? At least from the loadout point of view.&#13;&#10;&#13;&#10;There is such solution - the [b]Lost Ships Replacement - Better than Old[/b] extension.&#13;&#10;&#13;&#10;[h2][b]Compatibility[/b][/h2]&#13;&#10;&#13;&#10;This extension is compatible with the following versions:&#13;&#10;[list]&#13;&#10;[*] X4: Foundations version [b]7.50[/b]&#13;&#10;[/list]&#13;&#10;[h2][b]Limitations[/b][/h2]&#13;&#10;&#13;&#10;This mod requires a [b]Protected UI Mode[/b] in the Extensions settings to be disabled.&#13;&#10;If the shipyard selected to produce the replacement ship does not have the required resources for the better one - you will get the &quot;old&quot; one.&#13;&#10;&#13;&#10;[h2][b]Download[/b][/h2]&#13;&#10;&#13;&#10;You can download the latest version via - [url=https://steamcommunity.com/id/chemodun/myworkshopfiles/?appid=392160]Steam client[/url]&#13;&#10;Or you can do it via [url=https://next.nexusmods.com/profile/ChemODun/mods?gameId=2659]Nexus Mods[/url]&#13;&#10;&#13;&#10;[h2][b]Usage[/b][/h2]&#13;&#10;&#13;&#10;Simply install the extension and play as usual.&#13;&#10;Only one, but important, thing - please save the required loadout for any ship model with name 'ReplacementShip' in the shipyard.&#13;&#10;Nothing more is required.&#13;&#10;&#13;&#10;And mod will try to provide the better replacement ship for you.&#13;&#10;&#13;&#10;[h2][b]Links[/b][/h2]&#13;&#10;&#13;&#10;A short explanation video on YouTube - [previewyoutube=DFVexbenitI;full][/previewyoutube]"
+>
   <dependency version="750"></dependency>
   <dependency id="ws_3439691722" optional="true" name="Lost Ships Replacement Filters"></dependency>
 </content>
