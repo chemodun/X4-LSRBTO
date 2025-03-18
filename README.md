@@ -16,7 +16,7 @@ This extension is compatible with the following versions:
 
 ## Limitations
 
-This mod is requires `Protected UI Mode` in the Extensions settings to be disabled.
+This mod requires a `Protected UI Mode` in the Extensions settings to be disabled.
 If the shipyard selected to produce the replacement ship does not have the required resources for the better one - you will get the "old" one.
 
 ## Download
