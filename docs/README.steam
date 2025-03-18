@@ -1,0 +1,37 @@
+[h1]Lost Ships Replacement - Better than Old[/h1]
+
+In X4: Foundations, the [b]Lost Ships Replacement[/b] feature was introduced in version [b]7.50[/b].
+This feature allows the fleet to request a replacement ship if a ship is lost during the execution of an order.
+The replacement ship will have the same outfit/loadout as the lost ship and will be requested automatically.
+
+But what if you want to have a better replacement ship? At least from the loadout point of view.
+
+There is such solution - the [b]Lost Ships Replacement - Better than Old[/b] extension.
+
+[h2][b]Compatibility[/b][/h2]
+
+This extension is compatible with the following versions:
+[list]
+[*] X4: Foundations version [b]7.50[/b]
+[/list]
+[h2][b]Limitations[/b][/h2]
+
+This mod is requires [b]Protected UI Mode[/b] in the Extensions settings to be disabled.
+If the shipyard selected to produce the replacement ship does not have the required resources for the better one - you will get the "old" one.
+
+[h2][b]Download[/b][/h2]
+
+You can download the latest version via - [url=https://steamcommunity.com/id/chemodun/myworkshopfiles/?appid=392160]Steam client[/url]
+Or you can do it via [url=https://next.nexusmods.com/profile/ChemODun/mods?gameId=2659]Nexus Mods[/url]
+
+[h2][b]Usage[/b][/h2]
+
+Simply install the extension and play as usual.
+Only one, but important, thing - please save the required loadout for any ship model with name 'ReplacementShip' in the shipyard.
+Nothing more is required.
+
+And mod will try to provide the better replacement ship for you.
+
+[h2][b]Links[/b][/h2]
+
+A short explanation video on YouTube - [previewyoutube=DFVexbenitI;full][/previewyoutube]
