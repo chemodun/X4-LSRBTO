@@ -11,7 +11,7 @@
         <debug_text
           text="'GSLI_Init [%s]: Loadouts: %s, LoadoutsIndex: %s, LoadoutsUpdated: %s'.
               [player.age, @$GSLDataLoadouts, @$GSLDataLoadoutsIndex, @$GSLDataLoadoutsUpdated]"
-          chance="100" />
+        />
         <do_if value="$GSLDataLoadouts? and typeof @$GSLDataLoadouts == datatype.list" negate="true">
           <create_list name="$GSLDataLoadouts" />
         </do_if>
@@ -24,14 +24,14 @@
         <debug_text
           text="'GSLI_Init [%s]: Post-Init: Loadouts: %s, LoadoutsIndex: %s, LoadoutsUpdated: %s'.
               [player.age, @$GSLDataLoadouts, @$GSLDataLoadoutsIndex, @$GSLDataLoadoutsUpdated]"
-          chance="100" />
+        />
       </actions>
       <cues>
 
         <library name="GenerateShipLoadoutRequest" version="100">
           <actions>
             <debug_text text="'GSLI_GenerateLoadoutRequest [%s]: macro: %s'.[player.age, $getLoadoutByMacro]"
-              chance="100" />
+            />
             <raise_lua_event name="'GetShipLoadoutsInfoRequest'" param="'%s'.[$getLoadoutByMacro]" />
           </actions>
         </library>
@@ -64,9 +64,9 @@
           <actions>
             <debug_text
               text="'GSLI_Result [%s]: Event name: %s,  param: %s, param2: %s, param3: %s'.[player.age, @event.name, @event.param, @event.param2, @event.param3]"
-              chance="100" />
+            />
             <set_value name="$loadoutIndex" exact="@$GSLDataLoadoutsIndex.indexof.{@event.param3.$macro}" />
-            <debug_text text="'GSLI_LoadoutFound [%s]: Loadout index: %s'.[player.age, $loadoutIndex]" chance="100" />
+            <debug_text text="'GSLI_LoadoutFound [%s]: Loadout index: %s'.[player.age, $loadoutIndex]" />
             <do_if value="$loadoutIndex gt 0">
               <set_value name="$GSLDataLoadouts.{$loadoutIndex}" exact="@event.param3.$loadouts" />
               <set_value name="$GSLDataLoadoutsUpdated.{$loadoutIndex}" exact="player.age" />
@@ -80,10 +80,10 @@
             <debug_text
               text="'GSLI_LoadoutInfo [%s]: Loadouts: Macro: %s, Index: %s, Info: %s'.
               [player.age, @event.param3.$macro, $loadoutIndex, $GSLDataLoadouts.{$loadoutIndex}]"
-              chance="100" />
+            />
             <do_for_each name="$loadoutInfo" in="$GSLDataLoadouts.{$loadoutIndex}">
               <debug_text text="'GSLI_LoadoutInfo [%s]: Loadout: %s'.[player.age, $loadoutInfo]"
-                chance="100" />
+              />
             </do_for_each>
             <remove_value name="$loadoutIndex" />
           </actions>
@@ -100,12 +100,12 @@
             <debug_text
               text="'GSLI_GetShipLoadouts [%s]: Loadout By Ship: %s, Loadout By Macro: %s'.
               [player.age, @$getLoadoutByShip, @$getLoadoutByMacro]"
-              chance="100" />
+            />
             <do_if value="$getLoadoutByMacro? and @$getLoadoutByMacro">
               <debug_text
                 text="'GSLI_GetShipLoadouts [%s]: Loadout By Macro: %s. Data: %s. Count: %s'.
                 [player.age, @$getLoadoutByMacro, @md.GetShipLoadoutsInfo.Init.$GSLDataLoadouts, @md.GetShipLoadoutsInfo.Init.$GSLDataLoadouts.count]"
-                chance="100" />
+              />
               <do_if
                 value="md.GetShipLoadoutsInfo.Init.$GSLDataLoadouts? and @md.GetShipLoadoutsInfo.Init.$GSLDataLoadouts != null and @md.GetShipLoadoutsInfo.Init.$GSLDataLoadouts.count gt 0">
                 <set_value name="$loadoutIndex"
@@ -113,7 +113,7 @@
                 <debug_text
                   text="'GSLI_GetShipLoadouts [%s]: Loadout Index: %s. LoadoutsIndex: %s'.
                   [player.age, $loadoutIndex, @md.GetShipLoadoutsInfo.Init.$GSLDataLoadoutsIndex]"
-                  chance="100" />
+                />
                 <do_if value="$loadoutIndex gt 0">
                   <set_value name="$shipLoadoutsInfo" exact="@md.GetShipLoadoutsInfo.Init.$GSLDataLoadouts.{$loadoutIndex}" />
                   <set_value name="$requestUpdate"
@@ -137,7 +137,7 @@
             <debug_text
               text="'GSLI_GetShipLoadouts [%s]: Loadouts Info: Count: %s. Data: %s'.
               [player.age, @$shipLoadoutsInfo.count, $shipLoadoutsInfo]"
-              chance="100" />
+            />
           </actions>
         </library>
 
@@ -160,18 +160,18 @@
             <debug_text
               text="'GSLI_GetShipLoadout [%s]: Loadout By Ship: %s, Loadout By Macro: %s, Loadout By Name: %s'.
               [player.age, @$getLoadoutByShip, @$getLoadoutByMacro, @$getLoadoutByName]"
-              chance="100" />
+            />
             <include_actions ref="md.GetShipLoadoutsInfo.GetShipLoadouts" />
             <include_actions ref="md.GetShipLoadoutsInfo.GetShipLoadoutsClearance" />
             <do_if value="$shipLoadoutsInfo? and @$shipLoadoutsInfo.count gt 0">
               <do_for_each name="$loadoutInfo" in="$shipLoadoutsInfo">
                 <debug_text text="'GSLI_GetShipLoadout [%s]: Loadout Info: %s'.
-                  [player.age, $loadoutInfo]" chance="100" />
+                  [player.age, $loadoutInfo]" />
                 <do_if value="$getLoadoutByName? and @$getLoadoutByName and $loadoutInfo.$name == $getLoadoutByName">
                   <debug_text
                     text="'GSLI_GetShipLoadout [%s]: Loadout Info: Id: %s, Name: %s. Full: %s. Macro: %s'.
                     [player.age, $loadoutInfo.$id, $loadoutInfo.$name, $loadoutInfo, @$getLoadoutByMacro]"
-                    chance="100" />
+                  />
                   <set_value name="$shipLoadoutIdByMacroAndName" exact="'%s'.[$loadoutInfo.$id]" />
                   <get_loadout result="$shipLoadoutByMacroAndName" loadout="'%s'.[$loadoutInfo.$id]" macro="$getLoadoutByMacro" />
                   <break />
@@ -181,7 +181,7 @@
             <debug_text
               text="'GSLI_GetShipLoadout [%s]: Loadout %s, Wares Count: %s'.
               [player.age, @$shipLoadoutByMacroAndName, @$shipLoadoutByMacroAndName.wares.count]"
-              chance="100" />
+            />
             <include_actions ref="md.GetShipLoadoutsInfo.GetShipLoadoutsClearance" />
           </actions>
         </library>
