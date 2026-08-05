@@ -4,6 +4,7 @@ local C = ffi.C
 ffi.cdef [[
 
   typedef uint64_t UniverseID;
+	typedef uint64_t BuildTaskID;
 	typedef uint64_t FleetUnitID;
     typedef struct {
         const char* id;
@@ -21,7 +22,7 @@ ffi.cdef [[
 		size_t slot;
 		bool optional;
 		UILoadoutWeaponSetting weaponsetting;
-	} UILoadoutMacroData2;;
+	} UILoadoutMacroData2;
 	typedef struct {
 		const char* macro;
 		const char* path;
@@ -71,6 +72,18 @@ ffi.cdef [[
 		UILoadoutCrewData* crew;
 		bool hascrewexperience;
 	} UILoadout2;
+	typedef struct {
+		uint32_t numweapons;
+		uint32_t numturrets;
+		uint32_t numshields;
+		uint32_t numengines;
+		uint32_t numturretgroups;
+		uint32_t numshieldgroups;
+		uint32_t numammo;
+		uint32_t numunits;
+		uint32_t numsoftware;
+		uint32_t numcrew;
+	} UILoadoutCounts2;
 
 	typedef struct {
 		FleetUnitID fleetunitid;
