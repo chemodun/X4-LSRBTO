@@ -89,6 +89,8 @@ ffi.cdef [[
 	void GetLoadout2(UILoadout2* result, UniverseID defensibleid, const char* macroname, const char* loadoutid);
 	void SetFleetUnitLoadout(FleetUnitID fleetunitid, const char* macroname, UILoadout2 uiloadout);
 
+	UniverseID GetPlayerID(void);
+
 	uint32_t GetNumAllFleetUnits(UniverseID controllableid);
 	uint32_t GetAllFleetUnits(FleetUnitID* result, uint32_t resultlen, UniverseID controllableid);
 
@@ -99,14 +101,16 @@ local lsrbto = {
   logPrefix = "LSRBTO",
   replacementLoadoutName = "ReplacementShip",
   renameBlackboard = "$lsrbtoRenameTable",
-  debugLevel = "trace", -- "none" = off, "debug" = debug, "trace" = trace
+  configBlackboard = "$LSRBTOConfig",
+  debugLevel = "none", -- "none" = off, "debug" = debug, "trace" = trace
 }
 
-local function Init()
+local function init()
   RegisterEvent("LSRBTO.SetDebugLevel", lsrbto.SetDebugLevel)
   RegisterEvent("LSRBTO.GetLoadoutId", lsrbto.RequestLoadoutId)
   RegisterEvent("LSRBTO.ProcessBuildTasks", lsrbto.ProcessBuildTasks)
   RegisterEvent("LSRBTO.Rename", lsrbto.Rename)
+  lsrbto.ReadDebugLevel()
 end
 
 local function Write(message, ...)
@@ -129,9 +133,23 @@ function lsrbto.Trace(message, ...)
   end
 end
 
+-- The MD event may arrive before or after the config exists, so the blackboard is the fallback source on load.
+function lsrbto.ReadDebugLevel()
+  local playerId = ConvertStringTo64Bit(tostring(C.GetPlayerID()))
+  local config = GetNPCBlackboard(playerId, lsrbto.configBlackboard)
+  if config and config.debugLevel then
+    lsrbto.debugLevel = tostring(config.debugLevel)
+  end
+  lsrbto.Debug("ReadDebugLevel: level: %s", lsrbto.debugLevel)
+end
+
 function lsrbto.SetDebugLevel(_, level)
-  lsrbto.debugLevel = level or "none"
-  lsrbto.Debug("SetDebugLevel: level: %s", lsrbto.debugLevel)
+  if level and level ~= "" then
+    lsrbto.debugLevel = tostring(level)
+    lsrbto.Debug("SetDebugLevel: level: %s", lsrbto.debugLevel)
+  else
+    lsrbto.ReadDebugLevel()
+  end
 end
 
 function lsrbto.FindLoadoutId(macro)
@@ -253,6 +271,6 @@ function lsrbto.RequestLoadoutId(_, macro)
   return AddUITriggeredEvent("LSRBTO.LoadoutId", "Result", { macro = macro, id = loadoutId })
 end
 
-Init()
+Register_OnLoad_Init(init)
 
 return

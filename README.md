@@ -1,18 +1,27 @@
 # Lost Ships Replacement - Better than Old
 
-In X4: Foundations, the `Lost Ships Replacement` feature was introduced in version `7.50`.
-This feature allows the fleet to request a replacement ship if a ship is lost during the execution of an order.
-The replacement ship will have the same outfit/loadout as the lost ship and will be requested automatically.
+Get a better ship back than the one you lost. Save a loadout named `ReplacementShip` for a ship model in any shipyard, and from then on every `Lost Ships Replacement` request for that model is ordered with that loadout. There is nothing else to set up - no per-ship, per-fleet or per-order configuration.
 
-But what if you want to have a better replacement ship? At least from the loadout point of view.
-
-There is such solution - the `Lost Ships Replacement - Better than Old` extension.
+`Lost Ships Replacement` is the vanilla feature introduced in X4: Foundations `7.50` - when a fleet ship is lost while carrying out an order, the fleet automatically requests a new one, an exact copy of the ship it lost, loadout included. This extension changes only the loadout of that request.
 
 ## Compatibility
 
-This extension is compatible with the following versions:
+This extension is compatible with X4: Foundations version `7.50` and newer.
 
-- X4: Foundations version `7.50`
+On version `9.00` and newer the better loadout is applied before the replacement is built, so the ship is priced and produced like any other order. On earlier versions the loadout is applied to the finished ship rebuild instead, at no cost.
+
+## Requirements
+
+- `X4: Foundations` 8.00 and 9.00 and newer. For versions 7.50 and 7.60 use the version 1.00 of this extension.
+- `Mod Support APIs` by [SirNukes](https://next.nexusmods.com/profile/sirnukes?gameId=2659) to be installed and enabled. Version `1.95` and upper is required.
+  - It is available via Steam - [SirNukes Mod Support APIs](https://steamcommunity.com/sharedfiles/filedetails/?id=2042901274)
+  - Or via the Nexus Mods - [Mod Support APIs](https://www.nexusmods.com/x4foundations/mods/503)
+- `Options Helper`, to provide the in-game Debug Level option. Version `1.10` and upper is required.
+  - It is available via Steam - [Options Helper](https://steamcommunity.com/sharedfiles/filedetails/?id=3715253556)
+  - Or via the Nexus Mods - [Options Helper](https://www.nexusmods.com/x4foundations/mods/2089)
+- `Print Extension List`, to record the game version and the enabled extensions in the log. Version `1.01` and upper is required.
+  - It is available via Steam - [Print Extension List](https://steamcommunity.com/sharedfiles/filedetails/?id=3770927339)
+  - Or via the Nexus Mods - [Print Extension List](https://www.nexusmods.com/x4foundations/mods/2191)
 
 ## Limitations
 
@@ -32,6 +41,29 @@ Nothing more is required.
 
 And mod will try to provide the better replacement ship for you.
 
+## Extension Options
+
+The mod adds a `Lost Ships Replacement: Better than Old` page to `Settings` - `Extensions Options`, with a single setting:
+
+- **Debug Level** - how much the mod writes to the game log. `None` is the default and keeps the log clean, `Debug` records one line per action taken, and `Trace` adds the per-ship and per-loadout detail. Use `Debug` or `Trace` when preparing a bug report, then set it back to `None`.
+
+The setting takes effect immediately, no reload needed.
+
 ## Links
 
 A short explanation video on YouTube - [X4 Foundations: Lost Ship Replacement - Better than Old](https://youtube.com/watch?v=DFVexbenitI)
+
+## Changelog
+
+### [2.00] - 2026-08-06
+
+- **Improved**
+  - Support for X4 9.00: the replacement is now ordered with the `ReplacementShip` loadout already in place, so it is priced and built like a normal order. On earlier game versions the previous behaviour is kept.
+- **Added**
+  - `Extensions Options` page with a `Debug Level` setting - `None`, `Debug` or `Trace`.
+
+
+### [1.00] - 2025-03-18
+
+- **Added**
+  - Initial release.

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lost Ships Replacement - Better than Old - Bulgarian text, page 1972092438 -->
+<diff>
+  <add sel="/language">
+    <page id="1972092438" title="Lost Ships Replacement: Better than Old" descr="" voice="no">
+      <!-- mod identity -->
+      <t id="1">Lost Ships Replacement: Better than Old</t>
+
+      <!-- Section: Debug (90900) -->
+      <t id="90900">Отстраняване на грешки</t>
+      <t id="90910">Ниво на отстраняване на грешки</t>
+      <t id="90911">Няма</t>
+      <t id="90912">Отстраняване на грешки</t>
+      <t id="90913">Трасиране</t>
+    </page>
+  </add>
+</diff>

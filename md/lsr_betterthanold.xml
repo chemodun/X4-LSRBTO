@@ -7,37 +7,58 @@
         <event_cue_signalled cue="md.Setup.Start" />
       </conditions>
       <actions>
-        <!-- none = off, debug = debug, trace = trace -->
-        <include_actions ref="GetDefaultVariables" />
+        <include_actions ref="ReadDebugChances" />
         <debug_text text="'LSRBTO: LSRBetterThanOld Init'" chance="$debugChance" />
+        <include_actions ref="ClearDebugChances" />
       </actions>
       <patch sinceversion="200">
-        <include_actions ref="GetDefaultVariables" />
+        <include_actions ref="ReadDebugChances" />
         <debug_text text="'LSRBTO: LSRBetterThanOld Init: applied patch to version 2.00'" chance="$debugChance" />
         <do_if value="$upgradeTasks?">
           <remove_value name="$upgradeTasks" />
         </do_if>
+        <include_actions ref="ClearDebugChances" />
       </patch>
 
       <cues>
 
-        <library name="GetDefaultVariables" version="200">
+        <!-- $debugChance for one line per action, $traceChance for per-item detail. Callers must include ClearDebugChances when done:
+             several callers run inside vanilla's own cue instances. -->
+        <library name="ReadDebugChances" purpose="include_actions" version="200">
           <actions>
-            <set_value name="$debugLevel" exact="'trace'" />
-            <set_value name="$debugChance" exact="if $debugLevel == 'debug' or $debugLevel == 'trace' then 100 else 0" />
-            <set_value name="$traceChance" exact="if $debugLevel == 'trace' then 100 else 0" />
+            <set_value name="$lsrbtoDebugLevel" exact="if @player.entity.$LSRBTOConfig.$debugLevel != null
+              then player.entity.$LSRBTOConfig.$debugLevel else 'none'" />
+            <set_value name="$debugChance" exact="if @$lsrbtoDebugLevel == null or @$lsrbtoDebugLevel == 'none' then 0 else 100" />
+            <set_value name="$traceChance" exact="if @$lsrbtoDebugLevel == 'trace' then 100 else 0" />
+            <remove_value name="$lsrbtoDebugLevel" />
+          </actions>
+        </library>
+
+        <library name="ClearDebugChances" purpose="include_actions" version="200">
+          <actions>
+            <remove_value name="$debugChance" />
+            <remove_value name="$traceChance" />
+          </actions>
+        </library>
+
+        <library name="Defaults" purpose="include_actions" version="200">
+          <actions>
+            <set_value name="$cfg" exact="table[
+              $debugLevel = 'none',
+            ]" />
           </actions>
         </library>
 
         <library name="RequestLoadoutsInfo" version="200">
           <actions>
             <do_if value="player.gameversion lt 900">
-              <include_actions ref="md.LSRBetterThanOld.GetDefaultVariables" />
-              <debug_text text="'LSRBTO_RequestLoadoutsInfo [%s]: macro: %s'.[player.age, $locship.macro]"
+              <include_actions ref="md.LSRBetterThanOld.ReadDebugChances" />
+              <debug_text text="'LSRBTO: RequestLoadoutsInfo [%s]: macro: %s'.[player.age, $locship.macro]"
                 chance="$debugChance" />
               <set_value name="$getLoadoutByMacro" exact="$locship.macro" />
               <include_actions ref="md.GetShipLoadoutsInfo.RequestLoadoutId" />
               <remove_value name="$getLoadoutByMacro" />
+              <include_actions ref="md.LSRBetterThanOld.ClearDebugChances" />
             </do_if>
           </actions>
         </library>
@@ -45,7 +66,7 @@
         <library name="MakeBetterThanOld" version="200">
           <actions>
             <do_if value="player.gameversion lt 900">
-              <include_actions ref="md.LSRBetterThanOld.GetDefaultVariables" />
+              <include_actions ref="md.LSRBetterThanOld.ReadDebugChances" />
               <debug_text
                 text="'LSRBTO: MakeBetterThanOld [%s]: Build: Task: %s. Object: %s (%s). Processor: %s (%s). Other: %s (%s).'.
                 [
@@ -83,6 +104,7 @@
                 <remove_value name="$missingEquipment" />
               </do_if>
               <include_actions ref="md.GetShipLoadoutsInfo.GetShipLoadoutClearance" />
+              <include_actions ref="md.LSRBetterThanOld.ClearDebugChances" />
             </do_if>
           </actions>
         </library>

@@ -17,7 +17,13 @@
           <do_if value="$commander">
             <raise_lua_event name="'LSRBTO.ProcessBuildTasks'" param="@$commander" />
           </do_if>
-          <debug_text text="'LSRBTO PrepareToProcessRequest:  fleet reconstitution requested by: %s %s %s.\nFleet leader: %s %s %s in sector %s\n%s ships to be replaced.'.[@event.param2.idcode, @event.param2.knownname, event.param2, @$commander.idcode, @$commander.knownname, $commander, @$commander.sector.knownname, @event.param3.count]" />
+          <include_actions ref="md.LSRBetterThanOld.ReadDebugChances" />
+          <debug_text
+            text="'LSRBTO: PrepareToProcessRequest [%s]: fleet reconstitution requested by %s. Fleet leader: %s in sector %s. Ships to be replaced: %s'.
+              [player.age, @event.param2.debugname, @$commander.debugname, @$commander.sector.knownname, @event.param3.count]"
+            chance="$debugChance"
+          />
+          <include_actions ref="md.LSRBetterThanOld.ClearDebugChances" />
           <signal_objects object="player.entity" param="'reconstitute_fleet_confirmed'" param2="event.param2" param3="event.param3" delay="300ms" />
         </do_if>
         <do_else>
@@ -38,10 +44,12 @@
         <check_value value="player.gameversion ge 900" />
       </conditions>
       <actions>
-        <debug_text text="'LSRBTO BuildStarted: Going to rename unit, if needed'" />
+        <include_actions ref="md.LSRBetterThanOld.ReadDebugChances" />
+        <debug_text text="'LSRBTO: BuildStarted: going to rename unit, if needed'" chance="$debugChance" />
         <do_if value="@$commander != null">
           <raise_lua_event name="'LSRBTO.Rename'" param="$commander" />
         </do_if>
+        <include_actions ref="md.LSRBetterThanOld.ClearDebugChances" />
       </actions>
     </cue>
   </add>

@@ -7,15 +7,17 @@
         <event_cue_signalled cue="md.Setup.Start" />
       </conditions>
       <actions>
-        <include_actions ref="md.LSRBetterThanOld.GetDefaultVariables" />
+        <include_actions ref="md.LSRBetterThanOld.ReadDebugChances" />
         <debug_text text="'LSRBTO: GetShipLoadoutsInfo Init'" chance="$debugChance" />
         <include_actions ref="InitVariables" />
+        <include_actions ref="md.LSRBetterThanOld.ClearDebugChances" />
       </actions>
       <patch sinceversion="200">
-        <include_actions ref="md.LSRBetterThanOld.GetDefaultVariables" />
+        <include_actions ref="md.LSRBetterThanOld.ReadDebugChances" />
         <debug_text text="'LSRBTO: GetShipLoadoutsInfo Init: applied patch to version 2.00'" chance="$debugChance" />
         <include_actions ref="InitVariables" />
         <debug_text text="'LSRBTO: GetShipLoadoutsInfo Init: after patch: cacheLifetime: %s, loadoutIds: %s'.[@$cacheLifetime, @$loadoutIds]" chance="$debugChance" />
+        <include_actions ref="md.LSRBetterThanOld.ClearDebugChances" />
       </patch>
       <cues>
 
@@ -41,7 +43,7 @@
                       <do_if value="$oldLoadout.$name == 'ReplacementShip'">
                         <set_value name="$loadoutIds.{$oldMacro}" exact="table[$id = $oldLoadout.$id, $age = $GSLDataLoadoutsUpdated.{$oldIndex}]" />
                         <debug_text text="'LSRBTO: GSLI_Init [%s]: converted pre-200 cache entry: macro: %s, loadout: %s'.[player.age, $oldMacro, $oldLoadout.$id]"
-                          chance="$debugChance" />
+                          chance="$traceChance" />
                         <break />
                       </do_if>
                     </do_for_each>
@@ -63,10 +65,10 @@
         </library>
 
         <library name="RequestLoadoutId" version="200">
-          <!-- In: $getLoadoutByMacro -->
+          <!-- In: $getLoadoutByMacro. Leaves the debug chances set: every caller clears them itself. -->
           <actions>
-            <include_actions ref="md.LSRBetterThanOld.GetDefaultVariables" />
-            <debug_text text="'LSRBTO: RequestLoadoutId [%s]: macro: %s'.[player.age, $getLoadoutByMacro]" chance="$debugChance" />
+            <include_actions ref="md.LSRBetterThanOld.ReadDebugChances" />
+            <debug_text text="'LSRBTO: RequestLoadoutId [%s]: macro: %s'.[player.age, $getLoadoutByMacro]" chance="$traceChance" />
             <raise_lua_event name="'LSRBTO.GetLoadoutId'" param="'%s'.[$getLoadoutByMacro]" />
           </actions>
         </library>
@@ -77,19 +79,20 @@
             <check_value value="@event.param3.$macro and @event.param3.$id" />
           </conditions>
           <actions>
-            <include_actions ref="md.LSRBetterThanOld.GetDefaultVariables" />
+            <include_actions ref="md.LSRBetterThanOld.ReadDebugChances" />
             <set_value name="$macro" exact="macro.{@event.param3.$macro}" />
             <set_value name="$loadoutId" exact="@event.param3.$id" />
-            <debug_text text="'LSRBTO: LoadoutIdResult [%s]: macro: %s, loadout: %s, table: %s'.[player.age, $macro, @$loadoutId, @$loadoutIds]" chance="$debugChance" />
+            <debug_text text="'LSRBTO: LoadoutIdResult [%s]: macro: %s, loadout: %s, table: %s'.[player.age, $macro, @$loadoutId, @$loadoutIds]" chance="$traceChance" />
             <do_if value="$macro">
               <set_value name="$loadoutIds.{$macro}" exact="table[$id = @$loadoutId, $age = player.age]" />
               <debug_text text="'LSRBTO: LoadoutIdResult [%s]: macro: %s, loadout in table: %s'.[player.age, $macro, @$loadoutIds.{$macro}.$id]" chance="$debugChance" />
             </do_if>
             <do_else>
-              <debug_text text="'LSRBTO: LoadoutIdResult [%s]: unknown macro: %s'.[player.age, $macro]" chance="$debugChance" />
+              <debug_text text="'LSRBTO: LoadoutIdResult [%s]: unknown macro: %s'.[player.age, @event.param3.$macro]" chance="$debugChance" />
             </do_else>
             <remove_value name="$macro" />
             <remove_value name="$loadoutId" />
+            <include_actions ref="md.LSRBetterThanOld.ClearDebugChances" />
           </actions>
         </cue>
 
@@ -99,22 +102,24 @@
             <check_value value="@event.param2" />
           </conditions>
           <actions>
-            <include_actions ref="md.LSRBetterThanOld.GetDefaultVariables" />
+            <include_actions ref="md.LSRBetterThanOld.ReadDebugChances" />
             <debug_text text="'LSRBTO: ProcessShipLoadoutRequest [%s]: macro: %s'.[player.age, @event.param2]" chance="$debugChance" />
             <set_value name="$getLoadoutByMacro" exact="@event.param2" />
             <include_actions ref="md.GetShipLoadoutsInfo.RequestLoadoutId" />
             <remove_value name="$getLoadoutByMacro" />
+            <include_actions ref="md.LSRBetterThanOld.ClearDebugChances" />
           </actions>
         </cue>
 
         <library name="GetShipLoadout" version="200">
-          <!-- In: $getLoadoutByMacro. Out: $replacementLoadoutId, $replacementLoadout - both null when nothing is cached yet. -->
+          <!-- In: $getLoadoutByMacro. Out: $replacementLoadoutId, $replacementLoadout - both null when nothing is cached yet.
+               Leaves the debug chances set: the caller clears them along with GetShipLoadoutClearance. -->
           <actions>
-            <include_actions ref="md.LSRBetterThanOld.GetDefaultVariables" />
+            <include_actions ref="md.LSRBetterThanOld.ReadDebugChances" />
             <set_value name="$replacementLoadoutId" exact="null" />
             <set_value name="$replacementLoadout" exact="null" />
             <set_value name="$cachedLoadout" exact="@md.GetShipLoadoutsInfo.Init.$loadoutIds.{$getLoadoutByMacro}" />
-            <debug_text text="'LSRBTO: GetShipLoadout [%s]: macro: %s, cached loadout: %s'.[player.age, $getLoadoutByMacro, @$cachedLoadout]" chance="$debugChance" />
+            <debug_text text="'LSRBTO: GetShipLoadout [%s]: macro: %s, cached loadout: %s'.[player.age, $getLoadoutByMacro, @$cachedLoadout]" chance="$traceChance" />
             <do_if value="$cachedLoadout">
               <set_value name="$replacementLoadoutId" exact="$cachedLoadout.$id" />
               <get_loadout result="$replacementLoadout" loadout="$replacementLoadoutId" macro="$getLoadoutByMacro" />

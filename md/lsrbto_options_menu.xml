@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mdscript name="LSRBTO_Options_Menu" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
+
+  <cues>
+    <cue name="Init" instantiate="false" version="200">
+      <cues>
+
+        <cue name="Register_Menu" instantiate="true" version="200">
+          <conditions>
+            <event_cue_signalled cue="md.Simple_Menu_API.Reloaded" />
+          </conditions>
+          <actions>
+            <include_actions ref="md.LSRBetterThanOld.Defaults" />
+            <do_if value="@player.entity.$LSRBTOConfig == null">
+              <set_value name="player.entity.$LSRBTOConfig" exact="$cfg" />
+            </do_if>
+            <do_else>
+              <do_for_each name="$key" in="$cfg">
+                <do_if value="@player.entity.$LSRBTOConfig.{$key} == null">
+                  <set_value name="player.entity.$LSRBTOConfig.{$key}" exact="$cfg.{$key}" />
+                </do_if>
+              </do_for_each>
+            </do_else>
+            <remove_value name="$cfg" />
+
+            <include_actions ref="md.LSRBetterThanOld.ReadDebugChances" />
+            <debug_text text="'LSRBTO: Options: registering menu. Debug level: %s'.[player.entity.$LSRBTOConfig.$debugLevel]" chance="$debugChance" />
+            <include_actions ref="md.LSRBetterThanOld.ClearDebugChances" />
+
+            <raise_lua_event name="'LSRBTO.SetDebugLevel'" param="player.entity.$LSRBTOConfig.$debugLevel" />
+
+            <signal_cue_instantly cue="md.Simple_Menu_API.Register_Options_Menu"
+              param="table[
+                $id      = 'lsrbto_options_menu',
+                $columns = 12,
+                $title   = {1972092438, 1},
+                $onOpen  = Options_Menu,
+              ]" />
+          </actions>
+        </cue>
+
+        <cue name="Options_Menu" instantiate="true" version="200">
+          <conditions>
+            <event_cue_signalled />
+          </conditions>
+          <actions>
+            <do_if value="@player.entity.$LSRBTOConfig != null">
+              <set_value name="$cfg" exact="player.entity.$LSRBTOConfig" />
+
+              <run_actions ref="md.Options_Helper.Add_Title_Row">
+                <param name="title" value="{1972092438, 90900}" />
+              </run_actions>
+
+              <set_value name="$debugLevelOptions" exact="[
+                table[$text = {1972092438, 90911}, $value = 'none'],
+                table[$text = {1972092438, 90912}, $value = 'debug'],
+                table[$text = {1972092438, 90913}, $value = 'trace']
+              ]" />
+              <set_value name="$debugLevelIndexes" exact="['none', 'debug', 'trace']" />
+              <set_value name="$debugLevelCurrentIndex" exact="$debugLevelIndexes.indexof.{@$cfg.$debugLevel}" />
+              <do_if value="$debugLevelCurrentIndex == 0">
+                <set_value name="$debugLevelCurrentIndex" exact="1" />
+              </do_if>
+
+              <run_actions ref="md.Options_Helper.Add_Dropdown">
+                <param name="id" value="'debugLevel'" />
+                <param name="options" value="$debugLevelOptions" />
+                <param name="currentIndex" value="$debugLevelCurrentIndex" />
+                <param name="col" value="1" />
+                <param name="textColSpan" value="6" />
+                <param name="text" value="{1972092438, 90910}" />
+                <param name="dropdownColSpan" value="6" />
+                <param name="handle" value="Handle_Dropdown_Changed" />
+              </run_actions>
+
+              <remove_value name="$debugLevelOptions" />
+              <remove_value name="$debugLevelIndexes" />
+              <remove_value name="$debugLevelCurrentIndex" />
+              <remove_value name="$cfg" />
+            </do_if>
+          </actions>
+        </cue>
+
+        <cue name="Handle_Dropdown_Changed" instantiate="true" version="200">
+          <conditions>
+            <event_cue_signalled />
+          </conditions>
+          <actions>
+            <set_value name="$resultTable" exact="player.entity.$LSRBTOConfig" />
+            <include_actions ref="md.Options_Helper.Process_Dropdown_Changed" />
+            <remove_value name="$resultTable" />
+            <do_if value="event.param.$echo.$valueId == '$debugLevel'">
+              <raise_lua_event name="'LSRBTO.SetDebugLevel'" param="player.entity.$LSRBTOConfig.$debugLevel" />
+              <include_actions ref="md.LSRBetterThanOld.ReadDebugChances" />
+              <debug_text text="'LSRBTO: Options: debug level set to %s'.[player.entity.$LSRBTOConfig.$debugLevel]" chance="$debugChance" />
+              <include_actions ref="md.LSRBetterThanOld.ClearDebugChances" />
+            </do_if>
+          </actions>
+        </cue>
+
+      </cues>
+    </cue>
+  </cues>
+
+</mdscript>
