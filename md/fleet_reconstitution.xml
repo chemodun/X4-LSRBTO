@@ -1,9 +1,51 @@
-﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <diff>
-  <add sel="/mdscript/cues/cue[@name='Init']/cues/cue[@name='ProcessRequest']/actions/do_if[@value='$shipstobereplaced.count']/do_for_each[@name='$locship']/do_else/do_for_each[@name='$locshipyard']/do_if[@value='not $shipyardfails']/add_build_to_rebuild_fleet_ship[@result='$buildtask']" pos="after">
+  <add sel="/mdscript/cues/cue/cues" pos="prepend">
+    <cue name="PrepareToProcessRequest" instantiate="true" namespace="this">
+      <conditions>
+        <event_object_signalled object="player.entity" param="'reconstitute_fleet'" />
+        <check_value value="event.param2.isclass.controllable" />
+        <check_value value="not event.param2.fleetunit" />
+        <check_value value="@event.param3.count" />
+      </conditions>
+      <actions>
+        <do_if value="player.gameversion ge 900">
+          <set_value name="$commander" exact="@event.param2" />
+          <do_if value="$commander.commander">
+            <set_value name="$commander" exact="$commander.toplevelcommander" />
+          </do_if>
+          <do_if value="$commander">
+            <raise_lua_event name="'LSRBTO.ProcessBuildTasks'" param="@$commander" />
+          </do_if>
+          <debug_text text="'LSRBTO PrepareToProcessRequest:  fleet reconstitution requested by: %s %s %s.\nFleet leader: %s %s %s in sector %s\n%s ships to be replaced.'.[@event.param2.idcode, @event.param2.knownname, event.param2, @$commander.idcode, @$commander.knownname, $commander, @$commander.sector.knownname, @event.param3.count]" />
+          <signal_objects object="player.entity" param="'reconstitute_fleet_confirmed'" param2="event.param2" param3="event.param3" delay="300ms" />
+        </do_if>
+        <do_else>
+          <signal_objects object="player.entity" param="'reconstitute_fleet_confirmed'" param2="event.param2" param3="event.param3" />
+        </do_else>
+      </actions>
+    </cue>
+  </add>
+  <replace sel="/mdscript/cues/cue/cues/cue[@name='ProcessRequest']/conditions/event_object_signalled/@param">'reconstitute_fleet_confirmed'</replace>
+  <add sel="/mdscript/cues/cue/cues/cue[@name='ProcessRequest']/actions/do_if[@value='$shipstobereplaced.count']/do_for_each/do_else/do_for_each/do_if[@value='not $shipyardfails']/add_build_to_rebuild_fleet_ship" pos="after">
     <include_actions ref="md.LSRBetterThanOld.RequestLoadoutsInfo" />
   </add>
-  <add sel="/mdscript/cues/cue[@name='Init']/cues/cue[@name='ProcessRequest']/cues/cue[@name='CheckShipyards']/cues/cue[@name='BuildFinished']/actions/set_value[@name='$buildtask']" pos="after">
+  <add sel="/mdscript/cues/cue/cues/cue[@name='ProcessRequest']/cues/cue/cues" pos="prepend">
+    <cue name="BuildStarted" instantiate="true">
+      <conditions>
+        <event_build_started group="$shipyards" />
+        <check_value value="$buildtasks.indexof.{event.param3}" />
+        <check_value value="player.gameversion ge 900" />
+      </conditions>
+      <actions>
+        <debug_text text="'LSRBTO BuildStarted: Going to rename unit, if needed'" />
+        <do_if value="@$commander != null">
+          <raise_lua_event name="'LSRBTO.Rename'" param="$commander" />
+        </do_if>
+      </actions>
+    </cue>
+  </add>
+  <add sel="/mdscript/cues/cue/cues/cue[@name='ProcessRequest']/cues/cue/cues/cue[@name='BuildFinished']/actions/set_value" pos="after">
     <include_actions ref="md.LSRBetterThanOld.MakeBetterThanOld" />
   </add>
 </diff>
