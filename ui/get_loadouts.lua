@@ -102,6 +102,8 @@ ffi.cdef [[
 	void GetLoadout2(UILoadout2* result, UniverseID defensibleid, const char* macroname, const char* loadoutid);
 	void SetFleetUnitLoadout(FleetUnitID fleetunitid, const char* macroname, UILoadout2 uiloadout);
 
+	double GetCurrentGameTime(void);
+
 	UniverseID GetPlayerID(void);
 
 	uint32_t GetNumAllFleetUnits(UniverseID controllableid);
@@ -116,6 +118,7 @@ local lsrbto = {
   renameBlackboard = "$lsrbtoRenameTable",
   configBlackboard = "$LSRBTOConfig",
   debugLevel = "none", -- "none" = off, "debug" = debug, "trace" = trace
+  renameMaxAge = 10 * 3600, -- game seconds a pending name is kept before it is considered stale
 }
 
 local function init()
@@ -190,6 +193,24 @@ function lsrbto.FindLoadoutId(macro)
   return nil
 end
 
+-- An entry survives only until its replacement is built, so anything older than renameMaxAge is a request that never arrived.
+function lsrbto.LoadRenameTable(playerId)
+  local renameTable = GetNPCBlackboard(playerId, lsrbto.renameBlackboard) or {}
+  local now = C.GetCurrentGameTime()
+  local pruned = false
+  for idcode, entry in pairs(renameTable) do
+    if type(entry) ~= "table" or not entry.name or not entry.time or (now - entry.time) > lsrbto.renameMaxAge then
+      renameTable[idcode] = nil
+      pruned = true
+      lsrbto.Debug("LoadRenameTable: stale entry for idcode: %s dropped", idcode)
+    end
+  end
+  if pruned then
+    SetNPCBlackboard(playerId, lsrbto.renameBlackboard, renameTable)
+  end
+  return renameTable
+end
+
 function lsrbto.ProcessBuildTasks(_, commander)
   if not commander then
     lsrbto.Error("ProcessBuildTasks: no commander given")
@@ -205,8 +226,8 @@ function lsrbto.ProcessBuildTasks(_, commander)
   local units = ffi.new("FleetUnitID[?]", count)
   count = C.GetAllFleetUnits(units, count, commander64)
   local playerId = ConvertStringTo64Bit(tostring(C.GetPlayerID()))
-  local renameTable = GetNPCBlackboard(playerId, lsrbto.renameBlackboard) or {}
-  local stored = false
+  local renameTable = lsrbto.LoadRenameTable(playerId)
+  local now = C.GetCurrentGameTime()
   for i = 0, count - 1 do
     local unit = units[i]
     local info = C.GetFleetUnitInfo(unit)
@@ -222,14 +243,14 @@ function lsrbto.ProcessBuildTasks(_, commander)
         local loadout = Helper.getLoadoutHelper2(C.GetLoadout2, C.GetLoadoutCounts2, "UILoadout2", 0, macro, loadoutId)
         C.SetFleetUnitLoadout(unit, macro, loadout)
         -- SetFleetUnitLoadout clears the unit's name, and it can only be restored on the replacement, which does not exist yet.
-        renameTable[idcode] = name
-        stored = true
-        lsrbto.Debug("ProcessBuildTasks: fleet unit: %s (%s) got loadout: %s, name: %s stored for rename", unit, idcode, loadoutId, name)
+        renameTable = lsrbto.LoadRenameTable(playerId)
+        if renameTable[idcode] == nil then
+          renameTable[idcode] = { name = name, time = now }
+          SetNPCBlackboard(playerId, lsrbto.renameBlackboard, renameTable)
+          lsrbto.Debug("ProcessBuildTasks: fleet unit: %s (%s) got loadout: %s, name: %s stored for rename", unit, idcode, loadoutId, name)
+        end
       end
     end
-  end
-  if stored then
-    SetNPCBlackboard(playerId, lsrbto.renameBlackboard, renameTable)
   end
 end
 
@@ -239,7 +260,7 @@ function lsrbto.Rename(_, commander)
     return
   end
   local playerId = ConvertStringTo64Bit(tostring(C.GetPlayerID()))
-  local renameTable = GetNPCBlackboard(playerId, lsrbto.renameBlackboard) or {}
+  local renameTable = lsrbto.LoadRenameTable(playerId)
   if next(renameTable) == nil then
     lsrbto.Trace("Rename: nothing to rename")
     return
@@ -252,22 +273,22 @@ function lsrbto.Rename(_, commander)
   end
   local units = ffi.new("FleetUnitID[?]", count)
   count = C.GetAllFleetUnits(units, count, commander64)
-  local renamed = false
   for i = 0, count - 1 do
     local info = C.GetFleetUnitInfo(units[i])
     local idcode = ffi.string(info.idcode)
-    local newName = renameTable[idcode]
     local replacementId = ConvertStringTo64Bit(tostring(info.replacementid))
-    lsrbto.Trace("Rename: fleet unit: %s, idcode: %s, replacementId: %s, stored name: %s", units[i], idcode, replacementId, newName)
-    if newName and replacementId ~= nil and replacementId ~= 0 then
-      SetComponentName(replacementId, newName)
-      lsrbto.Debug("Rename: replacement of fleet unit %s renamed to: %s", idcode, newName)
-      renameTable[idcode] = nil
-      renamed = true
+    if replacementId ~= nil and replacementId ~= 0 then
+      renameTable = lsrbto.LoadRenameTable(playerId)
+      local entry = renameTable[idcode]
+      local newName = entry and entry.name
+      lsrbto.Trace("Rename: fleet unit: %s, idcode: %s, replacementId: %s, stored name: %s", units[i], idcode, replacementId, newName)
+      if newName and replacementId ~= nil and replacementId ~= 0 then
+        SetComponentName(replacementId, newName)
+        lsrbto.Debug("Rename: replacement of fleet unit %s renamed to: %s", idcode, newName)
+        renameTable[idcode] = nil
+        SetNPCBlackboard(playerId, lsrbto.renameBlackboard, renameTable)
+      end
     end
-  end
-  if renamed then
-    SetNPCBlackboard(playerId, lsrbto.renameBlackboard, renameTable)
   end
 end
 
