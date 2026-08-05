@@ -1,18 +1,33 @@
 [size=140][u]Lost Ships Replacement - Better than Old[/u][/size]
 
-In X4: Foundations, the [b]Lost Ships Replacement[/b] feature was introduced in version [b]7.50[/b].
-This feature allows the fleet to request a replacement ship if a ship is lost during the execution of an order.
-The replacement ship will have the same outfit/loadout as the lost ship and will be requested automatically.
+Get a better ship back than the one you lost. Save a loadout named [b]ReplacementShip[/b] for a ship model in any shipyard, and from then on every [b]Lost Ships Replacement[/b] request for that model is ordered with that loadout. There is nothing else to set up - no per-ship, per-fleet or per-order configuration.
 
-But what if you want to have a better replacement ship? At least from the loadout point of view.
-
-There is such solution - the [b]Lost Ships Replacement - Better than Old[/b] extension.
+[b]Lost Ships Replacement[/b] is the vanilla feature introduced in X4: Foundations [b]7.50[/b] - when a fleet ship is lost while carrying out an order, the fleet automatically requests a new one, an exact copy of the ship it lost, loadout included. This extension changes only the loadout of that request.
 
 [size=130][u]Compatibility[/u][/size]
 
-This extension is compatible with the following versions:
+This extension is compatible with X4: Foundations version [b]7.50[/b] and newer.
+
+On version [b]9.00[/b] and newer the better loadout is applied before the replacement is built, so the ship is priced and produced like any other order. On earlier versions the loadout is applied to the finished ship rebuild instead, at no cost.
+
+[size=130][u]Requirements[/u][/size]
 [list]
-[*] X4: Foundations version [b]7.50[/b]
+[*] [b]X4: Foundations[/b] 8.00 and 9.00 and newer. For versions 7.50 and 7.60 use the version 1.00 of this extension.
+[*] [b]Mod Support APIs[/b] by [url=https://next.nexusmods.com/profile/sirnukes?gameId=2659]SirNukes[/url] to be installed and enabled. Version [b]1.95[/b] and upper is required.
+[list]
+[*] It is available via Steam - [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2042901274]SirNukes Mod Support APIs[/url]
+[*] Or via the Nexus Mods - [url=https://www.nexusmods.com/x4foundations/mods/503]Mod Support APIs[/url]
+[/list]
+[*] `Options Helper`, to provide the in-game Debug Level option. Version [b]1.10[/b] and upper is required.
+[list]
+[*] It is available via Steam - [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3715253556]Options Helper[/url]
+[*] Or via the Nexus Mods - [url=https://www.nexusmods.com/x4foundations/mods/2089]Options Helper[/url]
+[/list]
+[*] `Print Extension List`, to record the game version and the enabled extensions in the log. Version [b]1.01[/b] and upper is required.
+[list]
+[*] It is available via Steam - [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3770927339]Print Extension List[/url]
+[*] Or via the Nexus Mods - [url=https://www.nexusmods.com/x4foundations/mods/2191]Print Extension List[/url]
+[/list]
 [/list]
 [size=130][u]Limitations[/u][/size]
 
@@ -32,6 +47,36 @@ Nothing more is required.
 
 And mod will try to provide the better replacement ship for you.
 
+[size=130][u]Extension Options[/u][/size]
+
+The mod adds a [b]Lost Ships Replacement: Better than Old[/b] page to [b]Settings[/b] - `Extensions Options`, with a single setting:
+[list]
+[*] [b]Debug Level[/b] - how much the mod writes to the game log. [b]None[/b] is the default and keeps the log clean, [b]Debug[/b] records one line per action taken, and [b]Trace[/b] adds the per-ship and per-loadout detail. Use [b]Debug[/b] or [b]Trace[/b] when preparing a bug report, then set it back to `None`.
+[/list]
+The setting takes effect immediately, no reload needed.
+
 [size=130][u]Links[/u][/size]
 
 A short explanation video on YouTube - [url=https://youtube.com/watch?v=DFVexbenitI]X4 Foundations: Lost Ship Replacement - Better than Old[/url]
+
+[size=130][u]Changelog[/u][/size]
+
+[size=125][u][2.00] - 2026-08-06[/u][/size]
+[list]
+[*] [b]Improved[/b]
+[list]
+[*] Support for X4 9.00: the replacement is now ordered with the [b]ReplacementShip[/b] loadout already in place, so it is priced and built like a normal order. On earlier game versions the previous behaviour is kept.
+[/list]
+[*] [b]Added[/b]
+[list]
+[*] [b]Extensions Options[/b] page with a [b]Debug Level[/b] setting - `None`, [b]Debug[/b] or `Trace`.
+[/list]
+[/list]
+
+[size=125][u][1.00] - 2025-03-18[/u][/size]
+[list]
+[*] [b]Added[/b]
+[list]
+[*] Initial release.
+[/list]
+[/list]
