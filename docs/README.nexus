@@ -32,7 +32,7 @@ On version [b]9.00[/b] and newer the better loadout is applied before the replac
 [size=3][u][b]Limitations[/b][/u][/size]
 
 This mod requires a [b]Protected UI Mode[/b] in the Extensions settings to be disabled.
-If the shipyard selected to produce the replacement ship does not have the required resources for the better one - you will get the "old" one.
+For game versions 8.0 and below, if the shipyard selected to produce the replacement ship does not have the required resources for the better one - you will get the "old" one.
 
 [size=3][u][b]Download[/b][/u][/size]
 
@@ -53,6 +53,8 @@ The mod adds a [b]Lost Ships Replacement: Better than Old[/b] page to [b]Setting
 [list]
 [*] [b]Debug Level[/b] - how much the mod writes to the game log. [b]None[/b] is the default and keeps the log clean, [b]Debug[/b] records one line per action taken, and [b]Trace[/b] adds the per-ship and per-loadout detail. Use [b]Debug[/b] or [b]Trace[/b] when preparing a bug report, then set it back to `None`.
 [/list]
+[img]https://raw.githubusercontent.com/chemodun/X4-LSRBTO/refs/heads/main/docs/images/options.png[/img]
+
 The setting takes effect immediately, no reload needed.
 
 [size=3][u][b]Links[/b][/u][/size]
