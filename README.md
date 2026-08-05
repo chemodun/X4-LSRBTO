@@ -51,9 +51,10 @@ The mod adds a `Lost Ships Replacement: Better than Old` page to `Settings` - `E
 
 The setting takes effect immediately, no reload needed.
 
-## Links
+## Videos
 
-A short explanation video on YouTube - [X4 Foundations: Lost Ship Replacement - Better than Old](https://youtube.com/watch?v=DFVexbenitI)
+[X4 Foundations: Lost Ship Replacement - Better than Old version 1.00](https://www.youtube.com/watch?v=DFVexbenitI)
+[X4 Foundations: Lost Ship Replacement - Better than Old version 2.00](https://www.youtube.com/watch?v=Qt8EEfEeik4)
 
 ## Changelog
 
