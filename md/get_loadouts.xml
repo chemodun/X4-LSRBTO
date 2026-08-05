@@ -2,194 +2,141 @@
 <mdscript name="GetShipLoadoutsInfo" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
 
   <cues>
-    <cue name="Init" version="100">
+    <cue name="Init" version="200">
       <conditions>
         <event_cue_signalled cue="md.Setup.Start" />
       </conditions>
       <actions>
-        <set_value name="$DebugChance" exact="0" />
-        <debug_text
-          text="'GSLI_Init [%s]: Loadouts: %s, LoadoutsIndex: %s, LoadoutsUpdated: %s'.
-              [player.age, @$GSLDataLoadouts, @$GSLDataLoadoutsIndex, @$GSLDataLoadoutsUpdated]"
-        />
-        <do_if value="$GSLDataLoadouts? and typeof @$GSLDataLoadouts == datatype.list" negate="true">
-          <create_list name="$GSLDataLoadouts" />
-        </do_if>
-        <do_if value="$GSLDataLoadoutsIndex? and typeof @$GSLDataLoadoutsIndex == datatype.list" negate="true">
-          <create_list name="$GSLDataLoadoutsIndex" />
-        </do_if>
-        <do_if value="$GSLDataLoadoutsUpdated? and typeof @$GSLDataLoadoutsUpdated == datatype.list" negate="true">
-          <create_list name="$GSLDataLoadoutsUpdated" />
-        </do_if>
-        <debug_text
-          text="'GSLI_Init [%s]: Post-Init: Loadouts: %s, LoadoutsIndex: %s, LoadoutsUpdated: %s'.
-              [player.age, @$GSLDataLoadouts, @$GSLDataLoadoutsIndex, @$GSLDataLoadoutsUpdated]"
-        />
+        <include_actions ref="md.LSRBetterThanOld.GetDefaultVariables" />
+        <debug_text text="'LSRBTO: GetShipLoadoutsInfo Init'" chance="$debugChance" />
+        <include_actions ref="InitVariables" />
       </actions>
+      <patch sinceversion="200">
+        <include_actions ref="md.LSRBetterThanOld.GetDefaultVariables" />
+        <debug_text text="'LSRBTO: GetShipLoadoutsInfo Init: applied patch to version 2.00'" chance="$debugChance" />
+        <include_actions ref="InitVariables" />
+        <debug_text text="'LSRBTO: GetShipLoadoutsInfo Init: after patch: cacheLifetime: %s, loadoutIds: %s'.[@$cacheLifetime, @$loadoutIds]" chance="$debugChance" />
+      </patch>
       <cues>
 
-        <library name="GenerateShipLoadoutRequest" version="100">
+        <library name="InitVariables" version="200">
           <actions>
-            <debug_text text="'GSLI_GenerateLoadoutRequest [%s]: macro: %s'.[player.age, $getLoadoutByMacro]"
-            />
-            <raise_lua_event name="'GetShipLoadoutsInfoRequest'" param="'%s'.[$getLoadoutByMacro]" />
+            <do_if value="$loadoutIds? and typeof @$loadoutIds == datatype.table" negate="true">
+              <set_value name="$loadoutIds" exact="table[]" />
+            </do_if>
+            <!-- Seconds a cached loadout id stays valid before it is re-requested from Lua. -->
+            <set_value name="$cacheLifetime" exact="60" />
+            <!-- Pre-200 cache: three parallel lists holding every saved loadout per macro. Convert the still-fresh entries to $loadoutIds, then drop them. -->
+            <do_if value="player.gameversion lt 900">
+              <do_if
+                value="$GSLDataLoadoutsIndex? and $GSLDataLoadouts? and $GSLDataLoadoutsUpdated?
+                  and $GSLDataLoadoutsIndex.count gt 0
+                  and $GSLDataLoadoutsIndex.count == $GSLDataLoadouts.count
+                  and $GSLDataLoadoutsIndex.count == $GSLDataLoadoutsUpdated.count">
+                <do_for_each name="$oldMacroName" in="$GSLDataLoadoutsIndex" counter="$oldIndex">
+                  <set_value name="$oldMacro" exact="macro.{$oldMacroName}" />
+                  <do_if value="$oldMacro and player.age - $GSLDataLoadoutsUpdated.{$oldIndex} le $cacheLifetime">
+                    <do_for_each name="$oldLoadout" in="$GSLDataLoadouts.{$oldIndex}">
+                      <!-- Mirrors the Lua constant lsrbto.replacementLoadoutName; needed here only to read pre-200 data. -->
+                      <do_if value="$oldLoadout.$name == 'ReplacementShip'">
+                        <set_value name="$loadoutIds.{$oldMacro}" exact="table[$id = $oldLoadout.$id, $age = $GSLDataLoadoutsUpdated.{$oldIndex}]" />
+                        <debug_text text="'LSRBTO: GSLI_Init [%s]: converted pre-200 cache entry: macro: %s, loadout: %s'.[player.age, $oldMacro, $oldLoadout.$id]"
+                          chance="$debugChance" />
+                        <break />
+                      </do_if>
+                    </do_for_each>
+                  </do_if>
+                  <remove_value name="$oldMacro" />
+                </do_for_each>
+              </do_if>
+            </do_if>
+            <do_if value="$GSLDataLoadouts?">
+              <remove_value name="$GSLDataLoadouts" />
+            </do_if>
+            <do_if value="$GSLDataLoadoutsIndex?">
+              <remove_value name="$GSLDataLoadoutsIndex" />
+            </do_if>
+            <do_if value="$GSLDataLoadoutsUpdated?">
+              <remove_value name="$GSLDataLoadoutsUpdated" />
+            </do_if>
           </actions>
         </library>
 
-        <library name="GenerateShipLoadoutRequestClearance" version="100">
+        <library name="RequestLoadoutId" version="200">
+          <!-- In: $getLoadoutByMacro -->
           <actions>
-            <remove_value name="$getLoadoutByMacro" />
+            <include_actions ref="md.LSRBetterThanOld.GetDefaultVariables" />
+            <debug_text text="'LSRBTO: RequestLoadoutId [%s]: macro: %s'.[player.age, $getLoadoutByMacro]" chance="$debugChance" />
+            <raise_lua_event name="'LSRBTO.GetLoadoutId'" param="'%s'.[$getLoadoutByMacro]" />
           </actions>
         </library>
 
-        <cue name="ProcessShipLoadoutRequest" instantiate="true" namespace="this" version="100">
+        <cue name="LoadoutIdResult" instantiate="true" version="200">
+          <conditions>
+            <event_ui_triggered screen="'LSRBTO.LoadoutId'" control="'Result'" />
+            <check_value value="@event.param3.$macro and @event.param3.$id" />
+          </conditions>
+          <actions>
+            <include_actions ref="md.LSRBetterThanOld.GetDefaultVariables" />
+            <set_value name="$macro" exact="macro.{@event.param3.$macro}" />
+            <set_value name="$loadoutId" exact="@event.param3.$id" />
+            <debug_text text="'LSRBTO: LoadoutIdResult [%s]: macro: %s, loadout: %s, table: %s'.[player.age, $macro, @$loadoutId, @$loadoutIds]" chance="$debugChance" />
+            <do_if value="$macro">
+              <set_value name="$loadoutIds.{$macro}" exact="table[$id = @$loadoutId, $age = player.age]" />
+              <debug_text text="'LSRBTO: LoadoutIdResult [%s]: macro: %s, loadout in table: %s'.[player.age, $macro, @$loadoutIds.{$macro}.$id]" chance="$debugChance" />
+            </do_if>
+            <do_else>
+              <debug_text text="'LSRBTO: LoadoutIdResult [%s]: unknown macro: %s'.[player.age, $macro]" chance="$debugChance" />
+            </do_else>
+            <remove_value name="$macro" />
+            <remove_value name="$loadoutId" />
+          </actions>
+        </cue>
+
+        <cue name="ProcessShipLoadoutRequest" instantiate="true" namespace="this" version="200">
           <conditions>
             <event_object_signalled object="player.entity" param="'get_ship_loadouts_by_macro'" />
             <check_value value="@event.param2" />
           </conditions>
           <actions>
+            <include_actions ref="md.LSRBetterThanOld.GetDefaultVariables" />
+            <debug_text text="'LSRBTO: ProcessShipLoadoutRequest [%s]: macro: %s'.[player.age, @event.param2]" chance="$debugChance" />
             <set_value name="$getLoadoutByMacro" exact="@event.param2" />
-            <include_actions ref="md.GetShipLoadoutsInfo.GenerateShipLoadoutRequest" />
-            <include_actions ref="md.GetShipLoadoutsInfo.GenerateShipLoadoutRequestClearance" />
+            <include_actions ref="md.GetShipLoadoutsInfo.RequestLoadoutId" />
+            <remove_value name="$getLoadoutByMacro" />
           </actions>
         </cue>
 
-        <cue name="GetShipLoadoutsInfoResult" instantiate="true" version="100">
-          <conditions>
-            <event_ui_triggered screen="'GetShipLoadoutsInfoResult'" />
-            <check_value value="@event.param == 'GetShipLoadoutsInfoResult'" />
-            <check_value value="@event.param2 == 'Result'" />
-            <check_value value="@event.param3 != null and @event.param3.$macro != null and @event.param3.$loadouts != null" />
-          </conditions>
+        <library name="GetShipLoadout" version="200">
+          <!-- In: $getLoadoutByMacro. Out: $replacementLoadoutId, $replacementLoadout - both null when nothing is cached yet. -->
           <actions>
-            <debug_text
-              text="'GSLI_Result [%s]: Event name: %s,  param: %s, param2: %s, param3: %s'.[player.age, @event.name, @event.param, @event.param2, @event.param3]"
-            />
-            <set_value name="$loadoutIndex" exact="@$GSLDataLoadoutsIndex.indexof.{@event.param3.$macro}" />
-            <debug_text text="'GSLI_LoadoutFound [%s]: Loadout index: %s'.[player.age, $loadoutIndex]" />
-            <do_if value="$loadoutIndex gt 0">
-              <set_value name="$GSLDataLoadouts.{$loadoutIndex}" exact="@event.param3.$loadouts" />
-              <set_value name="$GSLDataLoadoutsUpdated.{$loadoutIndex}" exact="player.age" />
+            <include_actions ref="md.LSRBetterThanOld.GetDefaultVariables" />
+            <set_value name="$replacementLoadoutId" exact="null" />
+            <set_value name="$replacementLoadout" exact="null" />
+            <set_value name="$cachedLoadout" exact="@md.GetShipLoadoutsInfo.Init.$loadoutIds.{$getLoadoutByMacro}" />
+            <debug_text text="'LSRBTO: GetShipLoadout [%s]: macro: %s, cached loadout: %s'.[player.age, $getLoadoutByMacro, @$cachedLoadout]" chance="$debugChance" />
+            <do_if value="$cachedLoadout">
+              <set_value name="$replacementLoadoutId" exact="$cachedLoadout.$id" />
+              <get_loadout result="$replacementLoadout" loadout="$replacementLoadoutId" macro="$getLoadoutByMacro" />
             </do_if>
-            <do_else>
-              <append_to_list name="$GSLDataLoadoutsIndex" exact="@event.param3.$macro" />
-              <append_to_list name="$GSLDataLoadouts" exact="@event.param3.$loadouts" />
-              <append_to_list name="$GSLDataLoadoutsUpdated" exact="player.age" />
-              <set_value name="$loadoutIndex" exact="$GSLDataLoadoutsIndex.count" />
-            </do_else>
-            <debug_text
-              text="'GSLI_LoadoutInfo [%s]: Loadouts: Macro: %s, Index: %s, Info: %s'.
-              [player.age, @event.param3.$macro, $loadoutIndex, $GSLDataLoadouts.{$loadoutIndex}]"
-            />
-            <do_for_each name="$loadoutInfo" in="$GSLDataLoadouts.{$loadoutIndex}">
-              <debug_text text="'GSLI_LoadoutInfo [%s]: Loadout: %s'.[player.age, $loadoutInfo]"
-              />
-            </do_for_each>
-            <remove_value name="$loadoutIndex" />
-          </actions>
-        </cue>
-
-        <library name="GetShipLoadouts" version="100">
-          <!-- $getLoadoutByShip - ship, or $getLoadoutByMacro - macro -->
-          <actions>
-            <set_value name="$shipLoadoutsInfo" exact="[]" />
-            <do_if value="$getLoadoutByShip? and $getLoadoutByShip.macro? and @$getLoadoutByShip.macro">
-              <set_value name="$getLoadoutByMacro" exact="$getLoadoutByShip.macro" />
+            <!-- Refresh a missing or stale entry for the next call; the Lua answer arrives too late for this one. -->
+            <do_if value="$cachedLoadout == null or player.age - $cachedLoadout.$age gt md.GetShipLoadoutsInfo.Init.$cacheLifetime">
+              <include_actions ref="md.GetShipLoadoutsInfo.RequestLoadoutId" />
             </do_if>
-            <set_value name="$requestUpdate" exact="false" />
+            <remove_value name="$cachedLoadout" />
             <debug_text
-              text="'GSLI_GetShipLoadouts [%s]: Loadout By Ship: %s, Loadout By Macro: %s'.
-              [player.age, @$getLoadoutByShip, @$getLoadoutByMacro]"
-            />
-            <do_if value="$getLoadoutByMacro? and @$getLoadoutByMacro">
-              <debug_text
-                text="'GSLI_GetShipLoadouts [%s]: Loadout By Macro: %s. Data: %s. Count: %s'.
-                [player.age, @$getLoadoutByMacro, @md.GetShipLoadoutsInfo.Init.$GSLDataLoadouts, @md.GetShipLoadoutsInfo.Init.$GSLDataLoadouts.count]"
-              />
-              <do_if
-                value="md.GetShipLoadoutsInfo.Init.$GSLDataLoadouts? and @md.GetShipLoadoutsInfo.Init.$GSLDataLoadouts != null and @md.GetShipLoadoutsInfo.Init.$GSLDataLoadouts.count gt 0">
-                <set_value name="$loadoutIndex"
-                  exact="@md.GetShipLoadoutsInfo.Init.$GSLDataLoadoutsIndex.indexof.{'%s'.[$getLoadoutByMacro]}" />
-                <debug_text
-                  text="'GSLI_GetShipLoadouts [%s]: Loadout Index: %s. LoadoutsIndex: %s'.
-                  [player.age, $loadoutIndex, @md.GetShipLoadoutsInfo.Init.$GSLDataLoadoutsIndex]"
-                />
-                <do_if value="$loadoutIndex gt 0">
-                  <set_value name="$shipLoadoutsInfo" exact="@md.GetShipLoadoutsInfo.Init.$GSLDataLoadouts.{$loadoutIndex}" />
-                  <set_value name="$requestUpdate"
-                    exact="player.age - @md.GetShipLoadoutsInfo.Init.$GSLDataLoadoutsUpdated.{$loadoutIndex} gt 60" />
-                </do_if>
-                <do_else>
-                  <set_value name="$requestUpdate" exact="true" />
-                </do_else>
-              </do_if>
-              <do_else>
-                <set_value name="$requestUpdate" exact="true" />
-              </do_else>
-              <do_if value="$requestUpdate?">
-                <include_actions ref="md.GetShipLoadoutsInfo.GenerateShipLoadoutRequest" />
-              </do_if>
-              <remove_value name="$requestUpdate" />
-            </do_if>
-            <do_if value="@$notClearLoadoutMacro" negate="true">
-              <remove_value name="$getLoadoutByMacro" />
-            </do_if>
-            <debug_text
-              text="'GSLI_GetShipLoadouts [%s]: Loadouts Info: Count: %s. Data: %s'.
-              [player.age, @$shipLoadoutsInfo.count, $shipLoadoutsInfo]"
+              text="'LSRBTO: GetShipLoadout [%s]: macro: %s, loadout: %s, wares count: %s'.
+              [player.age, $getLoadoutByMacro, @$replacementLoadoutId, @$replacementLoadout.wares.count]"
+              chance="$debugChance"
             />
           </actions>
         </library>
 
-        <library name="GetShipLoadoutsClearance" version="100">
+        <library name="GetShipLoadoutClearance" version="200">
           <actions>
-            <remove_value name="$getLoadoutByShip" />
-            <do_if value="@$notClearLoadoutMacro" negate="true">
-              <remove_value name="$getLoadoutByMacro" />
-            </do_if>
-            <remove_value name="$notClearLoadoutMacro" />
-          </actions>
-        </library>
-
-        <library name="GetShipLoadout" version="100">
-          <!-- $getLoadoutByShip - ship, or $getLoadoutByMacro - macro, $getLoadoutByName -->
-          <actions>
-            <set_value name="$shipLoadoutByMacroAndName" exact="null" />
-            <set_value name="$shipLoadoutIdByMacroAndName" exact="null" />
-            <set_value name="$notClearLoadoutMacro" exact="true" />
-            <debug_text
-              text="'GSLI_GetShipLoadout [%s]: Loadout By Ship: %s, Loadout By Macro: %s, Loadout By Name: %s'.
-              [player.age, @$getLoadoutByShip, @$getLoadoutByMacro, @$getLoadoutByName]"
-            />
-            <include_actions ref="md.GetShipLoadoutsInfo.GetShipLoadouts" />
-            <include_actions ref="md.GetShipLoadoutsInfo.GetShipLoadoutsClearance" />
-            <do_if value="$shipLoadoutsInfo? and @$shipLoadoutsInfo.count gt 0">
-              <do_for_each name="$loadoutInfo" in="$shipLoadoutsInfo">
-                <debug_text text="'GSLI_GetShipLoadout [%s]: Loadout Info: %s'.
-                  [player.age, $loadoutInfo]" />
-                <do_if value="$getLoadoutByName? and @$getLoadoutByName and $loadoutInfo.$name == $getLoadoutByName">
-                  <debug_text
-                    text="'GSLI_GetShipLoadout [%s]: Loadout Info: Id: %s, Name: %s. Full: %s. Macro: %s'.
-                    [player.age, $loadoutInfo.$id, $loadoutInfo.$name, $loadoutInfo, @$getLoadoutByMacro]"
-                  />
-                  <set_value name="$shipLoadoutIdByMacroAndName" exact="'%s'.[$loadoutInfo.$id]" />
-                  <get_loadout result="$shipLoadoutByMacroAndName" loadout="'%s'.[$loadoutInfo.$id]" macro="$getLoadoutByMacro" />
-                  <break />
-                </do_if>
-              </do_for_each>
-            </do_if>
-            <debug_text
-              text="'GSLI_GetShipLoadout [%s]: Loadout %s, Wares Count: %s'.
-              [player.age, @$shipLoadoutByMacroAndName, @$shipLoadoutByMacroAndName.wares.count]"
-            />
-            <include_actions ref="md.GetShipLoadoutsInfo.GetShipLoadoutsClearance" />
-          </actions>
-        </library>
-
-        <library name="GetShipLoadoutClearance" version="100">
-          <actions>
-            <remove_value name="$shipLoadoutByMacroAndName" />
-            <remove_value name="$shipLoadoutIdByMacroAndName" />
+            <remove_value name="$replacementLoadoutId" />
+            <remove_value name="$replacementLoadout" />
+            <remove_value name="$getLoadoutByMacro" />
           </actions>
         </library>
 

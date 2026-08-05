@@ -11,13 +11,6 @@ ffi.cdef [[
         const char* iconid;
         bool deleteable;
     } UILoadoutInfo;
-    typedef struct {
-        const char* id;
-        const char* name;
-        int32_t state;
-        const char* requiredversion;
-        const char* installedversion;
-    } InvalidPatchInfo;
 	typedef struct {
 		const char* ammomacroname;
 		const char* weaponmode;
@@ -102,133 +95,162 @@ ffi.cdef [[
 	FleetUnitInfo GetFleetUnitInfo(FleetUnitID fleetunitid);
 ]]
 -- Local functions/data.
-local L = {
+local lsrbto = {
+  logPrefix = "LSRBTO",
   replacementLoadoutName = "ReplacementShip",
+  renameBlackboard = "$lsrbtoRenameTable",
+  debugLevel = "trace", -- "none" = off, "debug" = debug, "trace" = trace
 }
 
 local function Init()
-  RegisterEvent("GetShipLoadoutsInfoRequest", L.GetLoadoutsInfo)
-  RegisterEvent("LSRBTO.ProcessBuildTasks", L.ProcessBuildTasks)
-  RegisterEvent("LSRBTO.Rename", L.Rename)
+  RegisterEvent("LSRBTO.SetDebugLevel", lsrbto.SetDebugLevel)
+  RegisterEvent("LSRBTO.GetLoadoutId", lsrbto.RequestLoadoutId)
+  RegisterEvent("LSRBTO.ProcessBuildTasks", lsrbto.ProcessBuildTasks)
+  RegisterEvent("LSRBTO.Rename", lsrbto.Rename)
 end
 
-function L.ProcessBuildTasks(_, commander)
-  DebugError(string.format("LSRBTO.ProcessBuildTasks:  commander: %s", commander))
+local function Write(message, ...)
+  DebugError(lsrbto.logPrefix .. ": " .. string.format(message, ...))
+end
+
+function lsrbto.Error(message, ...)
+  Write(message, ...)
+end
+
+function lsrbto.Debug(message, ...)
+  if lsrbto.debugLevel == "debug" or lsrbto.debugLevel == "trace" then
+    Write(message, ...)
+  end
+end
+
+function lsrbto.Trace(message, ...)
+  if lsrbto.debugLevel == "trace" then
+    Write(message, ...)
+  end
+end
+
+function lsrbto.SetDebugLevel(_, level)
+  lsrbto.debugLevel = level or "none"
+  lsrbto.Debug("SetDebugLevel: level: %s", lsrbto.debugLevel)
+end
+
+function lsrbto.FindLoadoutId(macro)
+  local count = C.GetNumLoadoutsInfo(0, macro)
+  if count == 0 then
+    lsrbto.Trace("FindLoadoutId: macro: %s has no saved loadouts", macro)
+    return nil
+  end
+  local buf = ffi.new("UILoadoutInfo[?]", count)
+  count = C.GetLoadoutsInfo(buf, count, 0, macro)
+  local numInvalidPatches = ffi.new("uint32_t[1]")
+  for i = 0, count - 1 do
+    if ffi.string(buf[i].name) == lsrbto.replacementLoadoutName then
+      local id = ffi.string(buf[i].id)
+      numInvalidPatches[0] = 0
+      if not C.IsLoadoutValid(0, macro, buf[i].id, numInvalidPatches) or numInvalidPatches[0] > 0 then
+        lsrbto.Debug("FindLoadoutId: macro: %s, loadout: %s is invalid, invalid patches: %s", macro, id, numInvalidPatches[0])
+        return nil
+      end
+      lsrbto.Trace("FindLoadoutId: macro: %s, loadout: %s", macro, id)
+      return id
+    end
+  end
+  lsrbto.Trace("FindLoadoutId: macro: %s has no '%s' loadout", macro, lsrbto.replacementLoadoutName)
+  return nil
+end
+
+function lsrbto.ProcessBuildTasks(_, commander)
   if not commander then
-    DebugError("LSRBTO.ProcessBuildTasks:  invalid build task data in blackboard")
+    lsrbto.Error("ProcessBuildTasks: no commander given")
     return
   end
+  lsrbto.Debug("ProcessBuildTasks: commander: %s", commander)
   local commander64 = ConvertStringTo64Bit(tostring(commander))
-  local n = C.GetNumAllFleetUnits(commander64)
-  if n > 0 then
-    local buf = ffi.new("FleetUnitID[?]", n)
-    n = C.GetAllFleetUnits(buf, n, commander64)
-    for i = 0, n - 1 do
-      local fleetUnitItem = buf[i]
-      local info = C.GetFleetUnitInfo(fleetUnitItem)
-      local name = ffi.string(info.name)
-      local idcode = ffi.string(info.idcode)
-      local macro = ffi.string(info.macro)
-      local buildTaskId = info.buildtaskid
-      local replacementId = info.replacementid
-      DebugError(string.format("LSRBTO.ProcessBuildTasks:  fleetUnit: %s, name: %s, idcode: %s, buildTaskId: %s, replacementId: %s", fleetUnitItem, name, idcode,
-        buildTaskId, replacementId))
-      if buildTaskId == 0 and replacementId == 0 then
-        local fleetUnit = fleetUnitItem
-        local fleetUnitInfo = info
-        DebugError(string.format("LSRBTO.ProcessBuildTasks:  found fleet unit: %s with macro: %s", fleetUnit, macro))
-        -- local macro, name, idcode, isunit = GetComponentData(object64, "macro", "name", "idcode", "isunit")
-        -- DebugError(string.format("LSRBTO.ProcessBuild:  object: %s, macro: %s, name: %s (%s), isunit: %s", object, macro, name, idcode, isunit))
-        local n = C.GetNumLoadoutsInfo(0, macro)
-        -- DebugError(string.format("GLI_Collect: macro = %s, count = %s", macro, n))
-        local loadoutId = ""
-        local buf = ffi.new("UILoadoutInfo[?]", n)
-        n = C.GetLoadoutsInfo(buf, n, 0, macro)
-        for i = 0, n - 1 do
-          local id = ffi.string(buf[i].id)
-          local name = ffi.string(buf[i].name)
-          -- DebugError(string.format("GLI_Collect: i = %s, id = %s, name = %s", i, id, name))
-          local numInvalidPatches = ffi.new("uint32_t[?]", 1)
-          if C.IsLoadoutValid(0, macro, id, numInvalidPatches) and name == L.replacementLoadoutName then
-            -- DebugError(string.format("GLI_Collect:  loadout is valid"))
-            loadoutId = id
-            break
-          end
-        end
-        if loadoutId ~= "" then
-          DebugError(string.format("LSRBTO.ProcessBuildTasks:  found valid loadout for macro: %s, loadoutId: %s", macro, loadoutId))
-          local loadout = Helper.getLoadoutHelper2(C.GetLoadout2, C.GetLoadoutCounts2, "UILoadout2", 0, macro, loadoutId)
-          DebugError(string.format("LSRBTO.ProcessBuildTasks:  loadout: %s", loadout))
-          C.SetFleetUnitLoadout(fleetUnit, macro, loadout)
-          DebugError(string.format("LSRBTO.ProcessBuildTasks:  loadout applied to fleet unit: %s", fleetUnit))
-          local playerId = ConvertStringTo64Bit(tostring(C.GetPlayerID()))
-          local renameTable = GetNPCBlackboard(playerId, "$lsrbtoRenameTable") or {}
-          renameTable[idcode] = name
-          SetNPCBlackboard(playerId, "$lsrbtoRenameTable", renameTable)
-          DebugError(string.format("LSRBTO.ProcessBuildTasks:  added rename entry for fleet unit: %s, name: %s, idcode: %s", fleetUnit, renameTable[idcode], idcode))
-        end
-      end
-    end
+  local count = C.GetNumAllFleetUnits(commander64)
+  if count == 0 then
+    lsrbto.Trace("ProcessBuildTasks: commander: %s has no fleet units", commander)
+    return
   end
-end
-
-function L.Rename(_, commander)
+  local units = ffi.new("FleetUnitID[?]", count)
+  count = C.GetAllFleetUnits(units, count, commander64)
   local playerId = ConvertStringTo64Bit(tostring(C.GetPlayerID()))
-  local renameTable = GetNPCBlackboard(playerId, "$lsrbtoRenameTable") or {}
-  if next(renameTable) == nil then
-    DebugError("LSRBTO.Rename:  no rename entries found in blackboard")
-    return
-  end
-  local commander64 = ConvertStringTo64Bit(tostring(commander))
-  local n = C.GetNumAllFleetUnits(commander64)
-  if n > 0 then
-    local buf = ffi.new("FleetUnitID[?]", n)
-    n = C.GetAllFleetUnits(buf, n, commander64)
-    for i = 0, n - 1 do
-      local fleetUnitItem = buf[i]
-      local info = C.GetFleetUnitInfo(fleetUnitItem)
-      local name = ffi.string(info.name)
-      local idcode = ffi.string(info.idcode)
-      local replacementId = ConvertStringTo64Bit(tostring(info.replacementid))
-      DebugError(string.format("LSRBTO.Rename:  fleetUnit: %s, name: %s, idcode: %s, replacementId: %s", fleetUnitItem, name, idcode, replacementId))
-      if renameTable[idcode] and replacementId ~= nil and replacementId ~= 0 then
-        local newName = renameTable[idcode]
-        local replacementName, replacementIdCode = GetComponentData(replacementId, "name", "idcode")
-        DebugError(string.format("LSRBTO.Rename:  fleet unit: %s has replacement: %s (%s), renaming to: %s", fleetUnitItem, replacementName, replacementIdCode, newName))
-        SetComponentName(replacementId, newName)
-        DebugError(string.format("LSRBTO.Rename:  name %s applied to replacement fleet unit: %s (%s)", newName, replacementName, replacementIdCode))
-        renameTable[idcode] = nil
-        SetNPCBlackboard(playerId, "$lsrbtoRenameTable", renameTable)
+  local renameTable = GetNPCBlackboard(playerId, lsrbto.renameBlackboard) or {}
+  local stored = false
+  for i = 0, count - 1 do
+    local unit = units[i]
+    local info = C.GetFleetUnitInfo(unit)
+    local name = ffi.string(info.name)
+    local idcode = ffi.string(info.idcode)
+    local macro = ffi.string(info.macro)
+    lsrbto.Trace("ProcessBuildTasks: fleet unit: %s, name: %s, idcode: %s, buildTaskId: %s, replacementId: %s", unit, name, idcode, info.buildtaskid,
+      info.replacementid)
+    -- Only units without a build task yet: the loadout is snapshotted into the task when it is created.
+    if info.buildtaskid == 0 and info.replacementid == 0 then
+      local loadoutId = lsrbto.FindLoadoutId(macro)
+      if loadoutId then
+        local loadout = Helper.getLoadoutHelper2(C.GetLoadout2, C.GetLoadoutCounts2, "UILoadout2", 0, macro, loadoutId)
+        C.SetFleetUnitLoadout(unit, macro, loadout)
+        -- SetFleetUnitLoadout clears the unit's name, and it can only be restored on the replacement, which does not exist yet.
+        renameTable[idcode] = name
+        stored = true
+        lsrbto.Debug("ProcessBuildTasks: fleet unit: %s (%s) got loadout: %s, name: %s stored for rename", unit, idcode, loadoutId, name)
       end
     end
   end
+  if stored then
+    SetNPCBlackboard(playerId, lsrbto.renameBlackboard, renameTable)
+  end
 end
 
-function L.GetLoadoutsInfo(_, macro)
-  local loadouts = {}
-  if not macro then
-    DebugError(string.format("GLI_Collect:  invalid input: %s", macro))
+function lsrbto.Rename(_, commander)
+  if not commander then
+    lsrbto.Error("Rename: no commander given")
     return
   end
-  local n = C.GetNumLoadoutsInfo(0, macro)
-  -- DebugError(string.format("GLI_Collect: macro = %s, count = %s", macro, n))
-  local buf = ffi.new("UILoadoutInfo[?]", n)
-  n = C.GetLoadoutsInfo(buf, n, 0, macro)
-  for i = 0, n - 1 do
-    local id = ffi.string(buf[i].id)
-    local name = ffi.string(buf[i].name)
-    -- DebugError(string.format("GLI_Collect: i = %s, id = %s, name = %s", i, id, name))
-    local numInvalidPatches = ffi.new("uint32_t[?]", 1)
-    if C.IsLoadoutValid(0, macro, id, numInvalidPatches) then
-      -- DebugError(string.format("GLI_Collect:  loadout is valid"))
-      local item = {}
-      item.id = id
-      item.name = ffi.string(buf[i].name)
-      table.insert(loadouts, item)
+  local playerId = ConvertStringTo64Bit(tostring(C.GetPlayerID()))
+  local renameTable = GetNPCBlackboard(playerId, lsrbto.renameBlackboard) or {}
+  if next(renameTable) == nil then
+    lsrbto.Trace("Rename: nothing to rename")
+    return
+  end
+  local commander64 = ConvertStringTo64Bit(tostring(commander))
+  local count = C.GetNumAllFleetUnits(commander64)
+  if count == 0 then
+    lsrbto.Trace("Rename: commander: %s has no fleet units", commander)
+    return
+  end
+  local units = ffi.new("FleetUnitID[?]", count)
+  count = C.GetAllFleetUnits(units, count, commander64)
+  local renamed = false
+  for i = 0, count - 1 do
+    local info = C.GetFleetUnitInfo(units[i])
+    local idcode = ffi.string(info.idcode)
+    local newName = renameTable[idcode]
+    local replacementId = ConvertStringTo64Bit(tostring(info.replacementid))
+    lsrbto.Trace("Rename: fleet unit: %s, idcode: %s, replacementId: %s, stored name: %s", units[i], idcode, replacementId, newName)
+    if newName and replacementId ~= nil and replacementId ~= 0 then
+      SetComponentName(replacementId, newName)
+      lsrbto.Debug("Rename: replacement of fleet unit %s renamed to: %s", idcode, newName)
+      renameTable[idcode] = nil
+      renamed = true
     end
   end
-  -- DebugError(string.format("GLI_Collect:  loadoutList = %s", #loadouts))
-  return AddUITriggeredEvent('GetShipLoadoutsInfoResult', 'Result', { macro = macro, loadouts = loadouts })
+  if renamed then
+    SetNPCBlackboard(playerId, lsrbto.renameBlackboard, renameTable)
+  end
+end
+
+function lsrbto.RequestLoadoutId(_, macro)
+  if not macro then
+    lsrbto.Error("RequestLoadoutId: no macro given")
+    return
+  end
+  local loadoutId = lsrbto.FindLoadoutId(macro)
+  if not loadoutId then
+    return
+  end
+  lsrbto.Debug("RequestLoadoutId: macro: %s, loadout: %s", macro, loadoutId)
+  return AddUITriggeredEvent("LSRBTO.LoadoutId", "Result", { macro = macro, id = loadoutId })
 end
 
 Init()
