@@ -133,7 +133,7 @@ function L.ProcessBuildTasks(_, commander)
       local replacementId = info.replacementid
       DebugError(string.format("LSRBTO.ProcessBuildTasks:  fleetUnit: %s, name: %s, idcode: %s, buildTaskId: %s, replacementId: %s", fleetUnitItem, name, idcode,
         buildTaskId, replacementId))
-      if buildTaskId == 0 and replacementId ~= 0 then
+      if buildTaskId == 0 and replacementId == 0 then
         local fleetUnit = fleetUnitItem
         local fleetUnitInfo = info
         DebugError(string.format("LSRBTO.ProcessBuildTasks:  found fleet unit: %s with macro: %s", fleetUnit, macro))
