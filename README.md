@@ -56,6 +56,16 @@ The setting takes effect immediately, no reload needed.
 [X4 Foundations: Lost Ship Replacement - Better than Old version 1.00](https://www.youtube.com/watch?v=DFVexbenitI)
 [X4 Foundations: Lost Ship Replacement - Better than Old version 2.00](https://www.youtube.com/watch?v=Qt8EEfEeik4)
 
+## Credits
+
+- **Author**: Chem O`Dun, on [Nexus Mods](https://next.nexusmods.com/profile/ChemODun/mods?gameId=2659) and [Steam Workshop](https://steamcommunity.com/id/chemodun/myworkshopfiles/?appid=392160)
+- *"X4: Foundations"* is a trademark of [Egosoft](https://www.egosoft.com).
+
+## Acknowledgements
+
+- [EGOSOFT](https://www.egosoft.com) — for the X series.
+- [SirNukes](https://next.nexusmods.com/profile/sirnukes?gameId=2659) — for the `Mod Support APIs` that power the UI hooks.
+
 ## Changelog
 
 ### [2.00] - 2026-08-06
