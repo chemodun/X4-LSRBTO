@@ -6,6 +6,8 @@
   version="200"
   date="2025-08-06"
   save="false"
+  sync="false"
+  enabled="true"
   lastupdate="1785975453"
   description="Get a better ship back than the one you lost!">
   <text language="7"
