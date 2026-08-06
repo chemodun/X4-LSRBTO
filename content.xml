@@ -4,10 +4,59 @@
   name="Lost Ships Replacement: Better than Old"
   author="Chem O`Dun"
   version="200"
-  date="2025-03-18"
+  date="2025-08-06"
   save="false"
-  lastupdate="1742326717"
-  description="This mod gives the player a way to replace lost ships with better loadouts than the original ship had"
->
-  <dependency version="750"></dependency>
+  lastupdate="1785975453"
+  description="Get a better ship back than the one you lost!">
+  <text language="7"
+    description="Get a better ship back than the one you lost!"></text>
+  <!-- French -->
+  <text language="33"
+    description="Récupérez un vaisseau meilleur que celui que vous avez perdu !"></text>
+  <!-- Spanish -->
+  <text language="34"
+    description="¡Recupera una nave mejor que la que perdiste!"></text>
+  <!-- Italian -->
+  <text language="39"
+    description="Riottieni una nave migliore di quella che hai perso!"></text>
+  <!-- Czech -->
+  <text language="42"
+    description="Získejte zpět lepší loď, než jakou jste ztratili!"></text>
+  <!-- English -->
+  <text language="44"
+    description="Get a better ship back than the one you lost!"></text>
+  <!-- Polish -->
+  <text language="48"
+    description="Odzyskaj lepszy statek niż ten, który straciłeś!"></text>
+  <!-- German -->
+  <text language="49"
+    description="Bekommen Sie ein besseres Schiff zurück als das verlorene!"></text>
+  <!-- Portuguese -->
+  <text language="55"
+    description="Receba de volta uma nave melhor do que a que você perdeu!"></text>
+  <!-- Japanese -->
+  <text language="81"
+    description="失った船よりも優れた船を手に入れましょう！"></text>
+  <!-- Korean -->
+  <text language="82"
+    description="잃어버린 함선보다 더 좋은 함선을 돌려받으세요!"></text>
+  <!-- Chinese Simplified -->
+  <text language="86"
+    description="获得比损失的那艘更好的舰船！"></text>
+  <!-- Chinese Traditional -->
+  <text language="88"
+    description="獲得比損失的那艘更好的艦船！"></text>
+  <!-- Turkish -->
+  <text language="90"
+    description="Kaybettiğinizden daha iyi bir gemi geri alın!"></text>
+  <!-- Bulgarian -->
+  <text language="359"
+    description="Получете обратно по-добър кораб от този, който загубихте!"></text>
+  <!-- Ukrainian -->
+  <text language="380"
+    description="Отримайте назад кращий корабель, ніж той, який ви втратили!"></text>
+  <dependency version="800"></dependency>
+  <dependency id="ws_2042901274" optional="false" name="SirNukes Mod Support APIs" version="195"></dependency>
+  <dependency id="ws_3715253556" optional="false" name="Options Helper" version="110"></dependency>
+  <dependency id="ws_3770927339" optional="false" name="Print Extension List" version="101"></dependency>
 </content>
