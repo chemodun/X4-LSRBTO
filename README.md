@@ -30,8 +30,8 @@ For game versions 8.0 and below, if the shipyard selected to produce the replace
 
 ## Download
 
-You can download the latest version via - [Steam client](https://steamcommunity.com/id/chemodun/myworkshopfiles/?appid=392160)
-Or you can do it via [Nexus Mods](https://next.nexusmods.com/profile/ChemODun/mods?gameId=2659)
+You can download the latest version via - [Steam client](https://steamcommunity.com/sharedfiles/filedetails/?id=3447300452)
+Or you can do it via [Nexus Mods](https://www.nexusmods.com/x4foundations/mods/1661)
 
 ## Usage
 
